@@ -1,6 +1,6 @@
-# 安裝 Termux
+# 安裝 Termux + SSH 設定
 
-## 初次設定
+## 1. 初次設定
 
 打開 Termux 後，執行以下命令：
 
@@ -8,135 +8,63 @@
 # 更新套件管理器
 pkg update && pkg upgrade
 
-# 安裝基本工具
-pkg install -y wget curl git nano vim
-
-# 安裝 termux-services (服務管理器)
-pkg install termux-services
+# 安裝基本工具 + OpenSSH
+pkg install -y wget curl git vim openssh
 ```
 
-**重要**：安裝 termux-services 後，必須**重新打開 Termux** 才能啟用 runit。
+## 2. 設定 SSH
 
-## 設定 SSH
+建議使用 SSH 進行所有操作，搭配 Tailscale（從 Google Play 安裝）可實現遠端存取。
 
-**強烈建議**：使用 SSH 進行所有操作，搭配 Tailscale ( Google Play 安裝) 實現遠端存取。
-
-### 1. 安裝並登入 Tailsacle
-
-### 2. 設定密碼
+### 2.1 設定密碼
 
 ```bash
 # 設定登入密碼
 passwd
 ```
 
-### 3. 啟動 sshd
+### 2.2 啟動 sshd
 
 ```bash
+# 啟動一次測試
+sshd
+
+# 設定每次開啟 Termux 自動啟動
 echo "sshd" >> ~/.profile
 ```
 
-### 4. 連線方式
+### 2.3 連線方式
 
 ```bash
-# 從其他設備連線 (使用 Tailscale IP)
-ssh <tailscale-ip>
+# 查看手機 IP（區網用）
+ifconfig
+# 或
+ip addr show wlan0
 
-# 或從同一網路連線
-ssh localhost
+# 從其他設備連線（區網 IP 或 Tailscale IP）
+ssh -p 8022 <手機-ip>
+
+# Termux 預設 SSH port 是 8022，不是 22
 ```
 
-## 安裝 glibc 支援
-
-### 選擇一：使用 glibc-repo (推薦)
+預設使用者名稱可用 `whoami` 查看，連線時例如：
 
 ```bash
-# 安裝 glibc-repo
-pkg install glibc-repo -y
-
-# 安裝 glibc-runner
-pkg install glibc-runner -y
-
-# 測試
-grun --help
+ssh -p 8022 u0_a123@192.168.1.100
 ```
 
-### 選擇二：使用 Bionilux (更完整)
+## 3. 測試安裝
 
 ```bash
-# 快速安裝
-curl -sL theonuverse.github.io/bionilux/setup | bash
-```
-
-### 選擇三：手動安裝 glibc
-
-```bash
-# 安裝 glibc
-pkg install glibc-repo -y
-pkg install glibc -y
-
-# 設定環境
-echo 'export GLIBC_PREFIX="$PREFIX/glibc"' >> ~/.bashrc
-echo 'export LD_LIBRARY_PATH="$GLIBC_PREFIX/lib:$LD_LIBRARY_PATH"' >> ~/.bashrc
-```
-
-## 測試安裝
-
-### 1. 測試基本命令
-
-```bash
-# 測試 ls
+# 測試基本命令
 ls -la
-
-# 測試 wget
 wget --version
-
-# 測試 git
 git --version
+ssh -V
 ```
 
-### 2. 測試 glibc (如果已安裝)
-
-```bash
-# 使用 glibc-runner
-glibc-runner --help
-```
-
-## 常見問題
-
-### 1. 無法更新套件
-
-```bash
-# 清除快取
-pkg clean
-
-# 重新設定套件
-pkg install apt-transport-https
-pkg update
-```
-
-### 2. 無法安裝 glibc
-
-```bash
-# 確認架構
-uname -m
-
-# 應該顯示 aarch64
-
-# 如果不是，可能需要安裝 arm 版本
-pkg install glibc-repo-arm -y
-```
-
-### 3. 服務無法啟動
-
-```bash
-# 檢查日誌
-ls -la $PREFIX/var/log/sv/
-
-# 查看特定服務日誌
-cat $PREFIX/var/log/sv/sshd/current
-```
+連線成功就完成了，基礎環境到此結束。
 
 ## 下一步
 
-完成 Termux 安裝後，請繼續 [安裝服務](./03-install-services.md)。
+繼續 [glibc Loader](./03-glibc-loader.md)。
